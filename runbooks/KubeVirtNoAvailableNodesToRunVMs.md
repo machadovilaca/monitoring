@@ -1,9 +1,8 @@
 # KubeVirtNoAvailableNodesToRunVMs
-<!-- Edited by machadovilaca, 31 Mar 2023 -->
 
 ## Meaning
 
-The KubeVirtNoAvailableNodesToRunVMs alert is triggered when all nodes in the
+The `KubeVirtNoAvailableNodesToRunVMs` alert is triggered when all nodes in the
 Kubernetes cluster are missing hardware virtualization or CPU virtualization
 extensions. This means that the cluster does not have the necessary hardware
 support to run virtual machines (VMs).
@@ -33,7 +32,7 @@ hardware virtualization or CPU virtualization extensions enabled.
 
 <!--DS: If you cannot resolve the issue, log in to the
 link:https://access.redhat.com[Customer Portal] and open a support case,
-attaching the artifacts gathered during the Diagnosis procedure.-->
+attaching the artifacts gathered during the diagnosis procedure.-->
 <!--USstart-->
 If you cannot resolve the issue, see the following resources:
 

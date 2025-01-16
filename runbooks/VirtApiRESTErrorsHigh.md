@@ -1,15 +1,17 @@
 # VirtApiRESTErrorsHigh
-<!-- Edited by Jiří Herrmann, 8 Nov 2022 -->
 
 ## Meaning
 
-More than 5% of REST calls have failed in the `virt-api` pods in the last 60 minutes.
+More than 5% of REST calls have failed in the `virt-api` pods in the last 60
+minutes.
 
 ## Impact
 
-A high rate of failed REST calls to `virt-api` might lead to slow response and execution of API calls.
+A high rate of failed REST calls to `virt-api` might lead to slow response and
+execution of API calls.
 
-However, currently running virtual machine workloads are not likely to be affected. 
+However, currently running virtual machine workloads are not likely to be
+affected.
 
 ## Diagnosis
 
@@ -28,7 +30,7 @@ However, currently running virtual machine workloads are not likely to be affect
 3. Check the `virt-api` logs:
 
    ```bash
-   $ kubectl logs -n  $NAMESPACE <virt-api>
+   $ kubectl logs -n $NAMESPACE <virt-api>
    ```
 
 4. Obtain the details of the `virt-api` pods:
@@ -37,7 +39,8 @@ However, currently running virtual machine workloads are not likely to be affect
    $ kubectl describe -n $NAMESPACE <virt-api>
    ```
 
-5. Check if any problems occurred with the nodes. For example, they might be in a `NotReady` state:
+5. Check if any problems occurred with the nodes. For example, they might be in
+a `NotReady` state:
 
    ```bash
    $ kubectl get nodes
@@ -57,9 +60,12 @@ However, currently running virtual machine workloads are not likely to be affect
 
 ## Mitigation
 
-Based on the information obtained during Diagnosis, try to identify the root cause and resolve the issue.
+Based on the information obtained during the diagnosis procedure, try to
+identify the root cause and resolve the issue.
 
-<!--DS: If you cannot resolve the issue, log in to the link:https://access.redhat.com[Customer Portal] and open a support case, attaching the artifacts gathered during the Diagnosis procedure.-->
+<!--DS: If you cannot resolve the issue, log in to the
+link:https://access.redhat.com[Customer Portal] and open a support case,
+attaching the artifacts gathered during the diagnosis procedure.-->
 <!--USstart-->
 If you cannot resolve the issue, see the following resources:
 

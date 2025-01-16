@@ -1,11 +1,12 @@
 # KubeMacPoolDuplicateMacsFound
-<!-- Edited by apinnick, Oct. 2022-->
 
 ## Meaning
 
 This alert fires when `KubeMacPool` detects duplicate MAC addresses.
 
-`KubeMacPool` is responsible for allocating MAC addresses and preventing MAC address conflicts. When `KubeMacPool` starts, it scans the cluster for the MAC addresses of virtual machines (VMs) in managed namespaces.
+`KubeMacPool` is responsible for allocating MAC addresses and preventing MAC
+address conflicts. When `KubeMacPool` starts, it scans the cluster for the MAC
+addresses of virtual machines (VMs) in managed namespaces.
 
 ## Impact
 
@@ -17,7 +18,7 @@ Duplicate MAC addresses on the same LAN might cause network issues.
 
    ```bash
    $ kubectl get pod -A -l control-plane=mac-controller-manager --no-headers \
-      -o custom-columns=":metadata.namespace,:metadata.name"
+     -o custom-columns=":metadata.namespace,:metadata.name"
    ```
 2. Obtain the duplicate MAC addresses from the `kubemacpool-mac-controller` logs:
 
@@ -27,7 +28,7 @@ Duplicate MAC addresses on the same LAN might cause network issues.
 
    Example output:
 
-   ```
+   ```text
    mac address 02:00:ff:ff:ff:ff already allocated to vm/kubemacpool-test/testvm, br1, 
    conflict with: vm/kubemacpool-test/testvm2, br1
    ```

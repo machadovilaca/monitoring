@@ -1,5 +1,4 @@
 # LowKVMNodesCount
-<!--edited by apinnick Nov 2022-->
 
 ## Meaning
 
@@ -13,11 +12,11 @@ Virtual machines cannot be scheduled or run if no nodes have KVM resources.
 
 ## Diagnosis
 
-Identify the nodes with KVM resources:
+- Identify the nodes with KVM resources:
 
-```bash
-$ kubectl get nodes -o jsonpath='{.items[*].status.allocatable}' | grep devices.kubevirt.io/kvm
-```
+  ```bash
+  $ kubectl get nodes -o jsonpath='{.items[*].status.allocatable}' | grep devices.kubevirt.io/kvm
+  ```
 
 ## Mitigation
 
@@ -25,5 +24,6 @@ $ kubectl get nodes -o jsonpath='{.items[*].status.allocatable}' | grep devices.
 <!--USstart-->
 Validate the [hardware virtualization support](https://kubevirt.io/user-guide/operations/installation/#validate-hardware-virtualization-support).
 
-If hardware virtualization is not available, [software emulation](https://github.com/kubevirt/kubevirt/blob/master/docs/software-emulation.md) can be enabled.
+If hardware virtualization is not available, [software emulation](https://github.com/kubevirt/kubevirt/blob/master/docs/software-emulation.md)
+can be enabled.
 <!--USend-->
