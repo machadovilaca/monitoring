@@ -42,6 +42,51 @@ var _ = Describe("Runbook", func() {
 		})
 	})
 
+	Context("Generated file comparison", func() {
+		var tempDir string
+
+		BeforeEach(func() {
+			var err error
+			tempDir, err = os.MkdirTemp("", "runbook-diff-*")
+			Expect(err).ToNot(HaveOccurred())
+
+			runbooksDir := filepath.Join(tempDir, downstreamRunbooksDir)
+			err = os.MkdirAll(runbooksDir, 0755)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		AfterEach(func() {
+			err := os.RemoveAll(tempDir)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		relPath := filepath.Join(downstreamRunbooksDir, "Foo.md")
+
+		It("reports a match when the generated file is byte-identical", func() {
+			content := []byte("# Foo\n\nidentical content\n")
+			err := os.WriteFile(filepath.Join(tempDir, relPath), content, 0644)
+			Expect(err).ToNot(HaveOccurred())
+
+			matches, err := generatedFileMatches(tempDir, relPath, content)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(matches).To(BeTrue())
+		})
+
+		It("reports a mismatch when the generated file differs", func() {
+			err := os.WriteFile(filepath.Join(tempDir, relPath), []byte("# Foo\n\nfixed content\n"), 0644)
+			Expect(err).ToNot(HaveOccurred())
+
+			matches, err := generatedFileMatches(tempDir, relPath, []byte("# Foo\n\nbuggy content\n"))
+			Expect(err).ToNot(HaveOccurred())
+			Expect(matches).To(BeFalse())
+		})
+
+		It("returns an error when the generated file is missing", func() {
+			_, err := generatedFileMatches(tempDir, relPath, []byte("anything"))
+			Expect(err).To(HaveOccurred())
+		})
+	})
+
 	Context("Runbook deprecation", func() {
 		var tempDir string
 		var testRunbookPath string
