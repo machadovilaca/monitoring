@@ -153,9 +153,19 @@ func replaceOnlyInText(text string, old string, new string) string {
 				}
 			}
 
+			// Trim trailing punctuation so a closing backtick immediately
+			// followed by e.g. "." or "," (as in "`virt-api-.*`.") is still
+			// detected as the end of an inline code span. Otherwise the state
+			// stays stuck open and the rest of the document is left untouched.
+			//
+			// This only applies to inline code: a fenced-code line ending in
+			// "```." is code content, not a valid closing delimiter, so block
+			// code must be closed only by a bare "```" (checked on trimmedWord).
+			inlineCloser := strings.TrimRight(trimmedWord, ".,;:!?)")
+
 			if inBlockCode && strings.HasSuffix(trimmedWord, "```") {
 				inBlockCode = false
-			} else if inInlineCode && strings.HasSuffix(trimmedWord, "`") {
+			} else if inInlineCode && strings.HasSuffix(inlineCloser, "`") {
 				inInlineCode = false
 			}
 
