@@ -1,10 +1,12 @@
 package main
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/go-git/go-git/v5"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
@@ -84,6 +86,71 @@ var _ = Describe("Runbook", func() {
 		It("returns an error when the generated file is missing", func() {
 			_, err := generatedFileMatches(tempDir, relPath, []byte("anything"))
 			Expect(err).To(HaveOccurred())
+		})
+	})
+
+	Context("Empty commit handling", func() {
+		var tempDir string
+		var repo *git.Repository
+		var worktree *git.Worktree
+
+		BeforeEach(func() {
+			var err error
+			tempDir, err = os.MkdirTemp("", "runbook-commit-*")
+			Expect(err).ToNot(HaveOccurred())
+
+			repo, err = git.PlainInit(tempDir, false)
+			Expect(err).ToNot(HaveOccurred())
+
+			worktree, err = repo.Worktree()
+			Expect(err).ToNot(HaveOccurred())
+
+			// An empty runbooks dir means commit() stages nothing, which is the
+			// clean-worktree case that yields git.ErrEmptyCommit.
+			runbooksDir := filepath.Join(tempDir, downstreamRunbooksDir)
+			Expect(os.MkdirAll(runbooksDir, 0755)).To(Succeed())
+		})
+
+		AfterEach(func() {
+			err := os.RemoveAll(tempDir)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("returns git.ErrEmptyCommit when the worktree is clean", func() {
+			rbSync := &runbookSync{downstreamRepo: repo}
+			err := rbSync.commit(worktree, "no changes")
+			Expect(errors.Is(err, git.ErrEmptyCommit)).To(BeTrue())
+		})
+
+		It("skips creating a new PR branch when a clean worktree has no PR", func() {
+			rbSync := &runbookSync{downstreamRepo: repo}
+			err := rbSync.commit(worktree, "no changes")
+
+			action, classifyErr := classifyCommitResult(err, false)
+			Expect(classifyErr).ToNot(HaveOccurred())
+			Expect(action).To(Equal(commitActionSkipNewPR))
+		})
+
+		It("continues to update an existing PR when a clean worktree has an open PR", func() {
+			rbSync := &runbookSync{downstreamRepo: repo}
+			err := rbSync.commit(worktree, "no changes")
+
+			action, classifyErr := classifyCommitResult(err, true)
+			Expect(classifyErr).ToNot(HaveOccurred())
+			Expect(action).To(Equal(commitActionKeepExisting))
+		})
+
+		It("proceeds normally when a commit was created", func() {
+			action, classifyErr := classifyCommitResult(nil, false)
+			Expect(classifyErr).ToNot(HaveOccurred())
+			Expect(action).To(Equal(commitActionProceed))
+		})
+
+		It("returns other commit errors for fatal handling", func() {
+			sentinel := errors.New("disk full")
+			action, classifyErr := classifyCommitResult(sentinel, true)
+			Expect(classifyErr).To(MatchError(sentinel))
+			Expect(action).To(Equal(commitActionProceed))
 		})
 	})
 

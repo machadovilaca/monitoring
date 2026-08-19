@@ -22,6 +22,7 @@ package main
 import (
 	"context"
 	"embed"
+	"errors"
 	"fmt"
 	"os"
 	"path"
@@ -175,8 +176,14 @@ func (rbSync *runbookSync) syncRunbookPR(p runbookPRSync) string {
 		klog.Fatalf("failed to generate runbook: %v", err)
 	}
 
-	if err := rbSync.commit(worktree, p.commitMsg); err != nil {
+	action, err := classifyCommitResult(rbSync.commit(worktree, p.commitMsg), prExists)
+	if err != nil {
 		klog.Fatalf("failed to commit changes: %v", err)
+	}
+
+	if action == commitActionSkipNewPR {
+		klog.Infof("no changes to sync for '%s', skipping new PR", p.branchName)
+		return p.branchName
 	}
 
 	if prExists {
@@ -291,6 +298,35 @@ func (rbSync *runbookSync) deprecateRunbook(rb runbook) string {
 			return nil
 		},
 	})
+}
+
+// commitAction describes how syncRunbookPR should proceed after committing.
+type commitAction int
+
+const (
+	commitActionProceed      commitAction = iota // a commit was created; continue the sync
+	commitActionSkipNewPR                        // nothing to commit and no PR exists; skip creating an empty PR
+	commitActionKeepExisting                     // nothing to commit but a PR exists; continue to update it in place
+)
+
+// classifyCommitResult decides how to proceed based on the commit result. A
+// clean worktree (git.ErrEmptyCommit) means the generated content already
+// matches the base branch: skip creating a brand-new empty PR, but still
+// continue so an existing PR is updated in place. Any other commit error is
+// returned to the caller for fatal handling.
+func classifyCommitResult(err error, prExists bool) (commitAction, error) {
+	if err == nil {
+		return commitActionProceed, nil
+	}
+
+	if errors.Is(err, git.ErrEmptyCommit) {
+		if prExists {
+			return commitActionKeepExisting, nil
+		}
+		return commitActionSkipNewPR, nil
+	}
+
+	return commitActionProceed, err
 }
 
 func (rbSync *runbookSync) commit(worktree *git.Worktree, msg string) error {
